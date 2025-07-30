@@ -1,25 +1,15 @@
-# TWRP Device Tree for Samsung Galaxy S23+
+# TWRP Device Tree for Samsung Galaxy S23+ 5G
 
-## For Decryption
+## Kernel source:
+[Here](https://github.com/samsung-sm8550/kernel_samsung_sm8550-common/tree/android13-5.15)
 
-[Install Instructions](https://xdaforums.com/t/sm-s916b-0-one-ui-6-1-userdata_aio-odin-flashable-to-remove-encryption-make-rom-rw-install-twrp-root-use-on-stock-firmware-unlocked-bootloaders.4610065/)
+## Special Thanks:
+[Edgars Cīrulis](https://github.com/Edgars-Cirulis) for the prebuilt kernel
 
-# Special Thanks 
-[jrkruse](https://xdaforums.com/m/jrkruse.1949695/) For userdata aio script.
+[Hunter](https://github.com/devhunter1) for the AVB digest patch
 
-[Edward](https://github.com/edward0181) For help.
-
-## Kernel source
-https://github.com/edward0181/android_kernel_samsung_sm8550.git
-
-## Clone repo
-```bash 
-git clone -b android-12.1 https://github.com/Archer3770/twrp_device_samsung_dm2q device/samsung/dm2q
-```
-
-## To build 
+## To build it: 
 ```bash
-export ALLOW_MISSING_DEPENDENCIES=true
 . build/envsetup.sh
 lunch twrp_dm2q-eng
 mka recoveryimage

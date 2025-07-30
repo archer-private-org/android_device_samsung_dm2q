@@ -1,8 +1,6 @@
 #
 # Copyright (C) 2023 The Android Open Source Project
 #
-# SPDX-License-Identifier: Apache-2.0
-#
 
 DEVICE_PATH := device/samsung/dm2q
 
@@ -29,12 +27,14 @@ TARGET_2ND_CPU_ABI2 := armeabi
 TARGET_2ND_CPU_VARIANT := generic
 TARGET_2ND_CPU_VARIANT_RUNTIME := cortex-a75
 
-TARGET_USES_64_BIT_BINDER := true
-
 ENABLE_CPUSETS := true
 ENABLE_SCHEDBOOST := true
 
 ALLOW_MISSING_DEPENDENCIES := true
+
+# Display
+TARGET_SCREEN_DENSITY := 450
+TARGET_USES_VULKAN := true
 
 # File systems
 TARGET_USERIMAGES_USE_EXT4 := true
@@ -47,17 +47,16 @@ TARGET_BOARD_PLATFORM_GPU := qcom-adreno740
 QCOM_BOARD_PLATFORMS += kalama
 
 # Kernel
-TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/zImage
+TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/Image.gz
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb
-BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo
-#BOARD_INCLUDE_DTB_IN_BOOTIMG := true
+BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/recovery_dtbo
 BOARD_INCLUDE_RECOVERY_DTBO := true
 TARGET_KERNEL_ARCH := arm64
 
 # Boot
 BOARD_BOOT_HEADER_VERSION := 2
 BOARD_KERNEL_BASE := 0x00000000
-BOARD_KERNEL_CMDLINE := video=vfb:640x400,bpp=32,memsize=3072000 printk.devkmsg=on firmware_class.path=/vendor/firmware_mnt/image bootconfig androidboot.hardware=qcom androidboot.memcg=1 androidboot.usbcontroller=a600000.dwc3 loop.max_part=7 androidboot.selinux=permissive buildvariant=eng
+BOARD_KERNEL_CMDLINE := video=vfb:640x400,bpp=32,memsize=3072000 printk.devkmsg=on firmware_class.path=/vendor/firmware_mnt/image bootconfig androidboot.hardware=qcom androidboot.memcg=1 androidboot.usbcontroller=a600000.dwc3 loop.max_part=7 androidboot.selinux=permissive
 BOARD_KERNEL_IMAGE_NAME := Image
 BOARD_KERNEL_PAGESIZE := 4096
 BOARD_KERNEL_OFFSET := 0x00008000
@@ -65,11 +64,11 @@ BOARD_RAMDISK_OFFSET := 0x02000000
 BOARD_KERNEL_SECOND_OFFSET := 0x00000000
 BOARD_KERNEL_TAGS_OFFSET := 0x01e00000
 BOARD_DTB_OFFSET := 0x01f00000
-BOARD_MKBOOTIMG_ARGS := --kernel_offset $(BOARD_KERNEL_OFFSET) --ramdisk_offset $(BOARD_RAMDISK_OFFSET) 
-BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET) --second_offset $(BOARD_KERNEL_SECOND_OFFSET)
-BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION) --pagesize $(BOARD_KERNEL_PAGESIZE) --board "SRPVH05C005"
-BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB) --dtb_offset $(BOARD_DTB_OFFSET)
-BOARD_CUSTOM_BOOTIMG_MK := $(DEVICE_PATH)/bootimg.mk
+BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)
+BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
+BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_KERNEL_TAGS_OFFSET)
+BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB) --board "SRPVH05C005"
+BOARD_CUSTOM_BOOTIMG_MK := $(DEVICE_PATH)/mkboot/bootimg.mk
 
 # Recovery
 BOARD_HAS_LARGE_FILESYSTEM := true
@@ -77,16 +76,17 @@ BOARD_HAS_NO_SELECT_BUTTON := true
 RECOVERY_SDCARD_ON_DATA := true
 TARGET_RECOVERY_QCOM_RTC_FIX := true
 TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
+TW_INCLUDE_FASTBOOTD := true
 
 # Partitions
 BOARD_FLASH_BLOCK_SIZE := 262144
-BOARD_BOOTIMAGE_PARTITION_SIZE := 109051904
+BOARD_BOOTIMAGE_PARTITION_SIZE := 100663296
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 109051904
 
 # Dynamic Partitions
-BOARD_SUPER_PARTITION_SIZE := 9126805504
+BOARD_SUPER_PARTITION_SIZE := 12664700928
 BOARD_SUPER_PARTITION_GROUPS := samsung_dynamic_partitions
-BOARD_SAMSUNG_DYNAMIC_PARTITIONS_SIZE := 9126805504
+BOARD_SAMSUNG_DYNAMIC_PARTITIONS_SIZE := 12664700928
 BOARD_SAMSUNG_DYNAMIC_PARTITIONS_PARTITION_LIST := system odm product system_ext vendor vendor_dlkm
 
 # System as root
@@ -111,9 +111,6 @@ BOARD_SUPPRESS_SECURE_ERASE := true
 BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := erofs
 TARGET_COPY_OUT_VENDOR := vendor
 
-# Properties
-TARGET_VENDOR_PROP += device/samsung/dm2q/vendor.prop
-
 AB_OTA_UPDATER := false
 
 # Android Verified Boot
@@ -128,7 +125,7 @@ BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --flag 2
 # Crypto
 PLATFORM_SECURITY_PATCH := 2029-12-31
 VENDOR_SECURITY_PATCH := 2029-12-31
-PLATFORM_VERSION := 12.1.0
+PLATFORM_VERSION := 12
 TW_INCLUDE_CRYPTO := false
 TW_INCLUDE_CRYPTO_FBE := false
 BOARD_USES_QCOM_FBE_DECRYPTION := false
@@ -144,15 +141,15 @@ TW_LOAD_VENDOR_MODULES_EXCLUDE_GKI := true
 
 # TWRP specific build flags
 TW_THEME := portrait_hdpi
-TW_DEVICE_VERSION := 0_Archer
+TW_DEVICE_VERSION := 0_archer
 TW_FRAMERATE := 120
 TW_MAX_BRIGHTNESS := 510
 TW_DEFAULT_BRIGHTNESS := 255
 TW_BRIGHTNESS_PATH := "/sys/class/backlight/panel0-backlight/brightness"
 TW_CUSTOM_CPU_TEMP_PATH := /sys/class/thermal/thermal_zone50/temp
+TARGET_USE_CUSTOM_LUN_FILE_PATH := /config/usb_gadget/g1/functions/mass_storage.0/lun.%d/file
 TW_SCREEN_BLANK_ON_BOOT := true
 TW_EXCLUDE_APEX := true
-TW_EXCLUDE_DEFAULT_USB_INIT := true
 TW_INCLUDE_NTFS_3G := true
 TW_NO_HAPTICS := true
 TW_USE_NEW_MINADBD := true
@@ -178,7 +175,3 @@ TW_INCLUDE_LPTOOLS := true
 
 # Statusbar icons flags
 TW_STATUS_ICONS_ALIGN := center
-TW_CUSTOM_CPU_POS := 580
-TW_CUSTOM_CLOCK_POS := 50
-TW_CUSTOM_BATTERY_POS := 800
-# End*

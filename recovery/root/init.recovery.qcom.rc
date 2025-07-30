@@ -25,12 +25,9 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import /init.recovery.qcom_decrypt.rc
-
 on init
     # to cut charging battery path
     write /sys/class/power_supply/battery/siop_level 0
-    setprop prepdecrypt.setpatch true
 
 on fs
     wait /dev/block/platform/soc/${ro.boot.bootdevice}
@@ -44,14 +41,3 @@ on fs
 
 on boot
     start health-hal-2-1
-
-on property:crypto.ready=1
-    start keymint-default
-    start keymaster-sb-4-0
-
-on property:crypto.ready=0
-    stop keymaster-sb-4-0
-    stop keymint-default
-
-on property:twrp.user.0.decrypt=0
-    umount /vendor/firmware_mnt

@@ -28,7 +28,7 @@
 #
 #
 # Changes from Qualcomm Innovation Center are provided under the following license:
-# Copyright (c) 2022 Qualcomm Innovation Center, Inc. All rights reserved.
+# Copyright (c) 2022-2023 Qualcomm Innovation Center, Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted (subject to the limitations in the
@@ -91,7 +91,7 @@ subsystem mem_buf_vm
 /dev/dma_heap/qcom,*      0444   system     system
 /dev/rtc0                 0660   system     system
 /dev/smd0                 0660   system     system
-/dev/smd4                 0660   system     bridge_rw
+/dev/smd4                 0660   system     system_ext_bridge_rw
 /dev/smd_cxm_qmi          0640   radio      radio
 /dev/smd5                 0660   system     system
 /dev/smd6                 0660   system     system
@@ -108,6 +108,8 @@ subsystem mem_buf_vm
 /dev/synx_device          0660   root       camera
 /dev/hab                  0666   system     system
 /dev/iio:device*          0664   system     system
+/dev/qmc_dma              0660   radio      radio
+/dev/qmc_cma              0660   radio      radio
 
 # dev ril bridge
 /dev/drb                  0660   system     radio
@@ -167,7 +169,9 @@ subsystem mem_buf_vm
 /dev/smd2                 0660   bluetooth  bluetooth
 /dev/smd3                 0660   bluetooth  bluetooth
 /dev/btpower              0660   bluetooth  system
-/dev/btfmslim             0660   bluetooth  system
+/dev/btfmslim             0664   bluetooth  system
+/dev/bt_cp_ctrl           0660   bluetooth  system
+/dev/btfmcodec_dev        0660   bluetooth  system
 
 #permissions for pta
 /dev/pta                  0660   system     system
@@ -230,6 +234,7 @@ subsystem mem_buf_vm
 /dev/cvp*                 0660   system     camera
 /dev/media*               0660   system     camera
 /dev/v4l-subdev*          0660   system     camera
+/dev/hdmi_bdg_irq_handler 0660   system     camera
 /dev/qseecom              0660   system     drmrpc
 /dev/qce                  0660   system     drmrpc
 /dev/smcinvoke            0660   system     drmrpc
@@ -303,7 +308,8 @@ subsystem mem_buf_vm
 /dev/msm_vidc_dec_sec     0660   system     audio
 /dev/msm_vidc_enc         0660   system     audio
 /dev/msm_rotator          0660   system     system
-/dev/hw_random            0600   root       root
+# Aside from kernel threads, only prng_seeder needs access to HW RNG
+/dev/hw_random            0400   prng_seeder prng_seeder
 /dev/sdsprpc-smd          0660   system     system
 
 #permissions for audio
@@ -503,6 +509,9 @@ subsystem mem_buf_vm
 /dev/block/platform/soc/7c4000.sdhci/by-name/frp        0600   system     system
 /dev/block/platform/soc/4744000.sdhci/by-name/frp       0600   system     system
 /dev/block/platform/soc/4804000.ufshc/by-name/frp       0600   system     system
+/dev/block/platform/soc/7c4000.sdhci/by-name/rawdump    0660   root       system
+/dev/block/platform/soc/1d84000.ufshc/by-name/rawdump   0660   root       system
+/dev/block/platform/soc/4804000.ufshc/by-name/rawdump   0600   root       system
 
 # This is temporary while using SD card for initial bring-up
 /dev/block/platform/soc/8804000.sdhci/by-name/frp       0600   system     system
@@ -737,6 +746,7 @@ subsystem mem_buf_vm
 /sys/class/camera/rear    cam_cdr_fastaec           0664    system    system
 /sys/class/camera/rear    rear_i2c_rfinfo           0664    system    system
 /sys/class/camera/rear    rear_eeprom_retry         0664    system    system
+/sys/class/camera/rear    cam_wifi_info             0664    system    system
 
 # Camera::Rear2
 /sys/class/camera/rear    rear2_camfw               0664    system    system
@@ -984,6 +994,8 @@ subsystem mem_buf_vm
 /sys/class/sec_vib_inputff/control	le_est				0444	system system
 /sys/class/sec_vib_inputff/control	use_sep_index		0220	system system
 /sys/class/sec_vib_inputff/control	event_cmd			0664	system system
+/sys/class/sec_vib_inputff/control  f0_cal_way		    0440	system system
+/sys/class/sec_vib_inputff/control	i2c_test			0664	system system
 
 # Vibrator nodes permission (vib_info)
 /sys/class/vib_info_class/vib_support_info	intensities			0664	system system
@@ -1007,6 +1019,7 @@ subsystem mem_buf_vm
 
 # TSP-1 (DUAL)
 /sys/class/sec/tsp1				cmd							0660	system radio
+/sys/class/sec/tsp1				enabled						0660	system system
 /sys/class/sec/tsp1/input		enabled						0660	system system
 /sys/class/sec/tsp1				sensitivity_mode			0664	system system
 /sys/class/sec/tsp1				prox_power_off				0664	system system
@@ -1015,6 +1028,7 @@ subsystem mem_buf_vm
 
 # TSP-2 (DUAL)
 /sys/class/sec/tsp2				cmd							0660	system radio
+/sys/class/sec/tsp2				enabled						0660	system system
 /sys/class/sec/tsp2/input		enabled						0660	system system
 /sys/class/sec/tsp2				sensitivity_mode			0664	system system
 /sys/class/sec/tsp2				prox_power_off				0664	system system
@@ -1049,7 +1063,7 @@ subsystem mem_buf_vm
 /sys/class/sec/sec_keypad		fw_update					0220	system system
 
 # Folding digital hall ic
-/sys/class/sec/digital_hall		digital_hall_thd			0644	system system
+/sys/class/sec/digital_hall		digital_hall_thd			0664	system system
 
 # TrustedUI VM
 external_firmware_handler /devices/platform/soc/soc:qcom,guestvm_loader@f3c00000/firmware/trustedvm.mdt system "/vendor/bin/vmmgr -r"
@@ -1068,17 +1082,15 @@ external_firmware_handler /devices/platform/soc/soc:gh-secure-vm-loader@0/firmwa
 external_firmware_handler /devices/platform/soc/soc:gh-secure-vm-loader@0/firmware/trustedvm.b04 system "/vendor/bin/vmmgr -r"
 external_firmware_handler /devices/platform/soc/soc:gh-secure-vm-loader@0/firmware/trustedvm.b05 system "/vendor/bin/vmmgr -r"
 
-# TEEGRIS
-/dev/tzdev                0666   system     system
-/dev/tziwsock             0666   system     system
-/dev/tziwshmem            0660   system     system
-/dev/tzirs                0660   system     system
-
 # PROCA dev config
 /dev/proca_config         0440   system     system
 
 # SecNVM
 /dev/k250a                0660   system     system
+
+# hdmi cec hal
+/dev/cec*                                            0660    system  system
+/sys/devices/platform/soc/984000.i2c/i2c-0/0-002b    get_hpd_stat    0660   system   system
 
 # Power on alarm
 /dev/power_on_alarm       0664   system     radio
